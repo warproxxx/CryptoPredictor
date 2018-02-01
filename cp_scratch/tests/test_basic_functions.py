@@ -1,0 +1,60 @@
+import numpy as np
+import pandas as pd
+from cp_scratch import basic_functions as cps
+
+def test_convert_to_one_hot():
+    testArr = np.array([[-4, -3, -2, -1, -2, -1, 0, 1, 1, 2, 3, 4]])
+    returned = cps.convert_to_one_hot(testArr, 9)
+    
+    assert(returned.shape[1] == testArr.shape[1])
+    
+    returned = returned.T #For easier checking no need to do on main program
+    
+    assert(np.count_nonzero(returned[0] == 1) == 1)
+    assert(returned[0][0] == 1)
+    
+    assert(np.count_nonzero(returned[1] == 1) == 1)
+    assert(returned[1][1] == 1)
+    
+    assert(np.count_nonzero(returned[2] == 1) == 1)
+    assert(returned[2][2] == 1)
+    
+    assert(np.count_nonzero(returned[3] == 1) == 1)
+    assert(returned[3][3] == 1)
+    
+    assert(np.count_nonzero(returned[4] == 1) == 1)
+    assert(returned[4][2] == 1)
+    
+    assert(np.count_nonzero(returned[5] == 1) == 1)
+    assert(returned[5][3] == 1)
+    
+    assert(np.count_nonzero(returned[6] == 1) == 1)
+    assert(returned[6][4] == 1)
+    
+    assert(np.count_nonzero(returned[7] == 1) == 1)
+    assert(returned[7][5] == 1)
+    
+    assert(np.count_nonzero(returned[8] == 1) == 1)
+    assert(returned[8][5] == 1)
+    
+    assert(np.count_nonzero(returned[9] == 1) == 1)
+    assert(returned[9][6] == 1)
+    
+    assert(np.count_nonzero(returned[10] == 1) == 1)
+    assert(returned[10][7] == 1)
+    
+    assert(np.count_nonzero(returned[11] == 1) == 1)
+    assert(returned[11][8] == 1)
+    
+def test_initialize_mini_batch():
+    np.random.seed(1)
+    X = np.random.randn(12288, 148)
+    y = np.random.randn(1, 148)
+
+    batches = cps.initialize_mini_batch(X,y,64)
+    assert(batches[0][0].shape == (12288, 64)) #testing X
+    assert(batches[1][0].shape == (12288, 64))
+    assert(batches[2][0].shape == (12288, 20))
+    assert(batches[0][1].shape == (1, 64)) #testing y
+    assert(batches[1][1].shape == (1, 64))
+    assert(batches[2][1].shape == (1, 20))
