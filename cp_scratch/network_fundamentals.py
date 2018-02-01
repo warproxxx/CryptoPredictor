@@ -36,6 +36,12 @@ def sigmoid_derivative(Z):
     calc = s*(1-s)
     return calc
 
+def softmax(x):
+    return np.exp(x) / np.sum(np.exp(x), axis=0)
+
+def softmax_derivative(Z):
+    
+
 def initialize_parameters(size, debug=0):
     """
     Creates the parameters for given size. Initiates using He Initialization.
@@ -97,6 +103,7 @@ def cost_function(AL, y, lambd=0, parameters={}):
     m = y.shape[1]
     
     cost = (1./m) * (-np.dot(y,np.log(AL).T) - np.dot(1-y, np.log(1-AL).T))
+    cost = np.sum(cost) #might be sth wrong. replace the cost with that for one hot
     cost = np.squeeze(cost)        
     reg = 0;
     

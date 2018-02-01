@@ -58,3 +58,23 @@ def test_initialize_mini_batch():
     assert(batches[0][1].shape == (1, 64)) #testing y
     assert(batches[1][1].shape == (1, 64))
     assert(batches[2][1].shape == (1, 20))
+    
+def test_initialize_adam():
+    dictionary = {'W1': np.array([[ 0.62511667, -0.5252495 , -1.19255901],
+                    [ 0.07065791,  0.06861056, -0.71005542]]),
+                 'W2': np.array([[ 1.31945139, -1.28305008]]),
+                 'b1': np.array([[ 0.],
+                        [ 0.]]),
+                 'b2': np.array([[ 0.]])}
+    v,s = cps.initialize_adam(dictionary)
+    
+    assert(len(v) == 4)
+    assert(len(s) == 4)
+    assert(v['dW1'].shape == dictionary['W1'].shape)
+    assert(v['db1'].shape == dictionary['b1'].shape)
+    assert(v['dW2'].shape == dictionary['W2'].shape)
+    assert(v['db2'].shape == dictionary['b2'].shape)
+    assert(s['dW1'].shape == dictionary['W1'].shape)
+    assert(s['db1'].shape == dictionary['b1'].shape)
+    assert(s['dW2'].shape == dictionary['W2'].shape)
+    assert(s['db2'].shape == dictionary['b2'].shape)
