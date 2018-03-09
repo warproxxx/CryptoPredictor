@@ -37,10 +37,14 @@ def sigmoid_derivative(Z):
     return calc
 
 def softmax(x):
-    return np.exp(x) / np.sum(np.exp(x), axis=0)
+    return np.exp(x) / np.sum(np.exp(x), axis=0) #because the 1/0 value is in vertical.
 
 def softmax_derivative(Z):
-    
+    signal = softmax(Z)
+    J = - signal[..., None] * signal[:, None, :] # off-diagonal Jacobian
+    iy, ix = np.diag_indices_from(J[0])
+    J[:, iy, ix] = signal * (1. - signal) # diagonal
+    return J.sum(axis=1)
 
 def initialize_parameters(size, debug=0):
     """
@@ -102,7 +106,8 @@ def cost_function(AL, y, lambd=0, parameters={}):
     
     m = y.shape[1]
     
-    cost = (1./m) * (-np.dot(y,np.log(AL).T) - np.dot(1-y, np.log(1-AL).T))
+    AL = softmax(AL) #note this
+    cost = (1./m) * - np.multiply(y, np.log(AL)).sum()
     cost = np.sum(cost) #might be sth wrong. replace the cost with that for one hot
     cost = np.squeeze(cost)        
     reg = 0;
@@ -179,7 +184,7 @@ def back_propagation(X, Y, cache,parameters,lambd=0):
     length = len(cache) // 2 #half elements are A, half is Z as above
     m = Y.shape[1]
     
-    dAL =  -(np.divide(Y, cache['A' + str(length)]) - np.divide(1 - Y, 1 - cache['A' + str(length)]))
+    dAL =  -(np.divide(Y, cache['A' + str(length)]))
     
     grads['dA' + str(length)] = dAL
     grads['dZ' + str(length)] = dAL * sigmoid_derivative(cache['Z' + str(length)])

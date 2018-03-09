@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def convert_to_one_hot(passedArr, C):
+def convert_to_one_hot(passedArr, C, andrewEncoding=True):
     '''
     Converts the one hot value
     
@@ -24,7 +24,11 @@ def convert_to_one_hot(passedArr, C):
     
     digitsLength = np.unique(newReshaped).shape[0]
     
-    returnVal= np.eye(C)[newReshaped].T
+    if (andrewEncoding == True):
+        returnVal= np.eye(C)[newReshaped].T
+    else:
+        returnVal= np.eye(C)[newReshaped]
+        
     return(returnVal)
 
 def initialize_mini_batch(X, y, batchsize=64, random=0):

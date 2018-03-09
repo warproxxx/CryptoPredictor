@@ -29,7 +29,7 @@ def percentage_to_classification(x):
     
     return y
 
-def return_data():
+def return_data(andrewEncoding=True):
     
     '''
     Returns:
@@ -71,10 +71,17 @@ def return_data():
     pd_XtrainNorm = (pd_Xtrain - mean)/std
     pd_XtestNorm = (pd_Xtest - mean)/std
     
-    Xtrain = np.array(pd_XtrainNorm).T
-    ytrain = np.array(pd_ytrain).T
+    if (andrewEncoding==True):
+        Xtrain = np.array(pd_XtrainNorm).T
+        ytrain = np.array(pd_ytrain).T
 
-    Xtest = np.array(pd_XtestNorm).T 
-    ytest = np.array(pd_ytest).T
+        Xtest = np.array(pd_XtestNorm).T 
+        ytest = np.array(pd_ytest).T
+    else:
+        Xtrain = np.array(pd_XtrainNorm)
+        ytrain = np.array(pd_ytrain)
+
+        Xtest = np.array(pd_XtestNorm) 
+        ytest = np.array(pd_ytest)
     
     return mean, std, pd_Xtrain, pd_ytrain, pd_Xtest, pd_ytest, Xtrain, ytrain, Xtest, ytest
