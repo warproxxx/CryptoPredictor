@@ -108,23 +108,52 @@ class PriceFunctions():
             y = -4
 
         return y
+    
+    def get_numpy(self, pd_Xtrain, pd_ytrain, pd_Xtest, pd_ytest):
+        '''
+        Normalized numpy from pandas
+        
+        Arguments:
+        pd_Xtrain: Unnormalized X train as pandas
+        pd_ytrain: Unnormalized y train as pandas
+        pd_Xtest: Unnormalized X test as pandas
+        pd_ytest: Unnormalized y test as pandas
+        
+        Returns:
+        mean: pandas mean of training set
+        std: pandas std of training set
+        Xtrain: Normalized pandas to numpy
+        ytrain: Normalized pandas to numpy
+        Xtest: Normalized pandas to numpy
+        ytest: Normalized pandas to numpy
+        '''
+        
+        mean = pd_Xtrain.mean()
+        std = pd_Xtrain.std()
 
-    def return_data(self):
+        pd_XtrainNorm = (pd_Xtrain - mean)/std
+        pd_XtestNorm = (pd_Xtest - mean)/std
+    
+        Xtrain = np.array(pd_XtrainNorm)
+        ytrain = np.array(pd_ytrain)
+
+        Xtest = np.array(pd_XtestNorm) 
+        ytest = np.array(pd_ytest)
+        
+        return mean, std, Xtrain, ytrain, Xtest, ytest
+
+    def get_pandas(self):
         '''
         Returns:
 
         Data from Bitfinex
 
-        mean: pandas mean of training set
-        std: pandas std of training set
+       
         pd_Xtrain: Unnormalized X train as pandas
         pd_ytrain: Unnormalized y train as pandas
         pd_Xtest: Unnormalized X test as pandas
         pd_ytest: Unnormalized y test as pandas
-        Xtrain: Normalized pandas to numpy
-        ytrain: Normalized pandas to numpy
-        Xtest: Normalized pandas to numpy
-        ytest: Normalized pandas to numpy
+        
         '''
 
         finex = BtcFinex()
@@ -146,17 +175,4 @@ class PriceFunctions():
         pd_Xtest = dfTest.iloc[:,:-1]
         pd_ytest = dfTest.iloc[:,-1:]
 
-
-        mean = pd_Xtrain.mean()
-        std = pd_Xtrain.std()
-
-        pd_XtrainNorm = (pd_Xtrain - mean)/std
-        pd_XtestNorm = (pd_Xtest - mean)/std
-    
-        Xtrain = np.array(pd_XtrainNorm)
-        ytrain = np.array(pd_ytrain)
-
-        Xtest = np.array(pd_XtestNorm) 
-        ytest = np.array(pd_ytest)
-
-        return mean, std, pd_Xtrain, pd_ytrain, pd_Xtest, pd_ytest, Xtrain, ytrain, Xtest, ytest
+        return pd_Xtrain, pd_ytrain, pd_Xtest, pd_ytest
