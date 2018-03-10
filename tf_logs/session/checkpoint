@@ -1,0 +1,2 @@
+model_checkpoint_path: "C:\\Users\\User\\Desktop\\Dissertation\\CryptoPredictor/tf_logs/session/session.chkp"
+all_model_checkpoint_paths: "C:\\Users\\User\\Desktop\\Dissertation\\CryptoPredictor/tf_logs/session/session.chkp"
