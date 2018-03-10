@@ -69,15 +69,18 @@ class BasicFunctions():
         batches.append((X,y))
         return batches
 
-    def single_plot(self, y, title='', Xtitle='', Ytitle=''):
+    def single_plot(self, y, title='', Xtitle='', Ytitle='', log=True):
         fig = plt.figure();
         axes = fig.add_axes([0,0,1,1])
 
         axes.set_xlabel(Xtitle)
         axes.set_ylabel(Ytitle)
         axes.set_title(title)
-
-        axes.plot(np.arange(1,len(y) + 1), np.log(y))
+        
+        if (log == True):
+            axes.plot(np.arange(1,len(y) + 1), np.log(y))
+        else:
+            axes.plot(np.arange(1,len(y) + 1), y)
 
 class PriceFunctions():
     def percentage_to_classification(self, x):
