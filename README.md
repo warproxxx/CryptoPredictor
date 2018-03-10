@@ -1,7 +1,5 @@
-# Crypto-Predictor
+# CryptoPredictor
 
-This is a new predictor that uses common modules to perform Machine Learning classification on Bitcoin and other crypto currencies using various ways
+Uses TensorFlow to classify bitcoin 10 minute bitcoin price on 24 hour change. Fully Object Oriented Approach. 
 
-It is done using python from scrath and using Keras.
-
-Later this will also be done using TensorFlow.
+LSTM and Manipulation stuffs also added later.
