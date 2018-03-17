@@ -144,8 +144,8 @@ class PriceFunctions():
 
     def get_pandas(self, data='cached'):
         '''
-		Parameters:
-		data: 'cached' returns cached data. 'download' adds data to cache or redownloads if there is no cache.
+        Parameters:
+        data: 'cached' returns cached data. 'download' adds data to cache or redownloads if there is no cache.
         Returns:
 
         Data from Bitfinex
@@ -159,10 +159,10 @@ class PriceFunctions():
         '''
 
         finex = BtcFinex()
-		
-		if (data == 'download'):
-			finex.loadData()
-		
+
+        if (data == 'download'):
+            finex.loadData()
+
         df = finex.getCleanData()
         df.set_index('Time', inplace=True)
 
