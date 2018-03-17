@@ -1,0 +1,6 @@
+{
+  "src/CryptoScraper/tests/test_bitfinex.py": true,
+  "test/CryptoScraper/test_bitfinex.py": true,
+  "test/data_utils/test_functions.py": true,
+  "tests/data_utils/test_functions.py": true
+}
