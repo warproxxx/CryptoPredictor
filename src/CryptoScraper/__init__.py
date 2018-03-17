@@ -1,0 +1,1 @@
+from CryptoScraper.bitfinex import BtcFinex
