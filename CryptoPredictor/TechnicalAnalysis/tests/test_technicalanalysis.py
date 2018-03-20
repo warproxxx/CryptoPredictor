@@ -3,9 +3,12 @@ import numpy as np
 
 from TechnicalAnalysis import TechnicalAnalysis
 
-class test_TechnicalAnalysis():
+#test not happen. probably because its class
+
+class TestTechnicalAnalysis():
     
-    def __init__(self):
+    #run before test
+    def setup_method(self, test_method): 
         self.shape_df = pd.DataFrame(columns=['Time', 'Open', 'Close', 'High', 'Low', 'Volume'])
         
         #might be better if there are negatives and positives too in different part. Do it.
@@ -172,3 +175,8 @@ class test_TechnicalAnalysis():
         assert(len(cols[cols.str.contains('rsi') & cols.str.contains('4hour')]) == 3)
         
         assert(len(cols[cols.str.contains('obv')]) == len(timeframe))
+        
+    #run after test
+    def teardown_method(self, test_method):
+        del self.shape_df
+        del self.symmetry_df
