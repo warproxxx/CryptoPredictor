@@ -165,19 +165,17 @@ class TechnicalAnalysis:
         close today = close yesterday Current OBV = Previous OBV
         '''
         tempdf = df.copy()
-
         tempdf['obv'] = 0
-        
+
         for index, row in tempdf.iterrows():
-            if index >= 1:
+            if 'oldloc' in vars() or 'oldloc' in globals():
                 if tempdf.loc[index]['Close'] > tempdf.loc[oldloc]['Close']:
                     tempdf.at[index, 'obv'] = tempdf.loc[oldloc]['obv'] + tempdf.loc[index]['Volume']
                 elif tempdf.loc[index]['Close'] < tempdf.loc[oldloc]['Close']:
                     tempdf.at[index, 'obv'] = tempdf.loc[oldloc]['obv'] - tempdf.loc[index]['Volume']
-                elif tempdf.loc[index]['Close'] == tempdf.loc[index-1]['Close']:
+                elif tempdf.loc[index]['Close'] == tempdf.loc[oldloc]['Close']:
                     tempdf.at[index, 'obv'] = tempdf.loc[oldloc]['obv']
-        
-            
+                        
             oldloc = index
         
         return tempdf['obv']

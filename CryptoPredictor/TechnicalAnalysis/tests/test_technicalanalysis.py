@@ -149,11 +149,11 @@ class TestTechnicalAnalysis():
         ta = TechnicalAnalysis(self.shape_df, timeframe=timeframe, period=period)
         ta.merge_time()
         
-        ta.perform('macd') #works
-        ta.perform('bollingerband') #works
-        ta.perform('volumechange') #works
-        ta.perform('rsi') #works
-        ta.perform('obv') #works
+        ta.perform('macd')
+        ta.perform('bollingerband')
+        ta.perform('volumechange')
+        ta.perform('rsi')
+        ta.perform('obv')
         
         df = ta.get_dataframe() #the different timeframes should be merged into single dataframe
         cols = pd.Series(df.columns) #simple multiply won't work in assert as obv is not divided into different timeframe

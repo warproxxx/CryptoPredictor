@@ -1,30 +1,41 @@
-# Crypto Scraper
+# Technical Analysis
 
-![Download Data](https://i.imgur.com/hiSbDgG.png)
-
-I was backtesting some trading strategy for my academic dissertation and needed hourly bitcoin data from 2013. 
-
-I didn't found a good solution so i made this script to scrap data from Bitfinex. 
+Performs time merge/split and MACD, RSI, Bollinger Band, On Balance Volume and Volume Change Technical Analysis on given pandas dataframe for a given timeframe and period and returns it in dictonary (data for different timeframes) or a dataframe.
 
 **Usage:**
 
-First import the BtcFinex class to get Bitcoin data from Bitfinex
+First import the TechnicalAnalysis class
 
-    from CryptoScraper import BtcFinex
+    from TechnicalAnalysis import TechnicalAnalysis
 
-Create a instance and download data if this in the first run. The repository already contains hourly data till March 2018. You can make changes to url variable in bitfinex.py to grab data from a different timeframe. If you do so, make sure you clear the cache folder before.
+Create an instance using pandas dataframe of stock data. The data must contain Close and Volume contain. Other columns are optional. 
 
-    finex = BtcFinex()
-	finex.loadData()
+The values in timeframe refer to times that should be merged. Value of 3 and 6 means each 3 and 6 datas will be merged in which Technical Analysis will be done
 
-Note that Bitfinex API limits total requests to 10 per minute so the program might take some break.
+The values in period refer to Technical Indicator Period. The value should be greater than 3. 14 and 20 days are common periods.
 
-After downloading, call getCleanData() function to get a pandas dataframe of the data. Forward fill is done in places where the Bitfinex API do not return any data. The csv files are located in cache folder. final-rough.csv contains data without forward fill and final-clean.csv contains data with forward fill before being read as a pandas dataframe.
+    ta = TechnicalAnalysis(df, timeframe=[3,6,12,24], period=[14, 20])
 
-    df = finex.getCleanData()
+The above line performs 3 hour, 6 hour, 12 hour and daily Technical Analysis on a period of 14 and 20.
 
-Optionally, set Time column as the index. It is in UNIX Timestamp format.
+Run the merge_time method to merge different timeframes.
+    
+	ta.merge_time()
 
-    df.set_index('Time', inplace=True)
+Call the perform method with the name of analysis
+	
+	ta.perform('macd')
+    ta.perform('bollingerband')
+    ta.perform('volumechange')
+    ta.perform('rsi')
+    ta.perform('obv')
+
+Get the dataframe
+	
+	df = ta.get_dataframe()
+
+Or optionally get the dictionary with different timeframe as keys
+
+	dic = ta.get_dic()
 
 ![Pandas Dataframe of data](https://i.imgur.com/ZXObhE4.png)
