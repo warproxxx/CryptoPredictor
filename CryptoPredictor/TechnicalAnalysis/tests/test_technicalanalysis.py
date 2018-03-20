@@ -13,20 +13,20 @@ class TestTechnicalAnalysis():
         
         #might be better if there are negatives and positives too in different part. Do it.
         for i in range(100):
-            self.shape_df = self.shape_df.append({'Time': i, 'Open': i, 'Close': i, 'High': i, 'Low': i, 'Volume': i}, ignore_index=True)
+            self.shape_df = self.shape_df.append({'Time': i, 'Open': i, 'Close': i, 'High': i, 'Low': i, 'Volume': i, 'Classification':i}, ignore_index=True)
         
         self.shape_df.set_index('Time', inplace=True)
         
         symmetry_df = pd.DataFrame(columns=['Time', 'Open', 'Close', 'High', 'Low', 'Volume'])
-        symmetry_df = symmetry_df.append({'Time': 1, 'Open': 3, 'Close': 1, 'High': 5, 'Low': 0, 'Volume': 10}, ignore_index=True)
-        symmetry_df = symmetry_df.append({'Time': 2, 'Open': 1, 'Close': 8, 'High': 8, 'Low': 1, 'Volume': 10}, ignore_index=True)
-        symmetry_df = symmetry_df.append({'Time': 3, 'Open': 8, 'Close': 4, 'High': 8, 'Low': 4, 'Volume': 10}, ignore_index=True)
-        symmetry_df = symmetry_df.append({'Time': 4, 'Open': 4, 'Close': 6, 'High': 6, 'Low': 4, 'Volume': 10}, ignore_index=True)
-        symmetry_df = symmetry_df.append({'Time': 5, 'Open': 6, 'Close': 10, 'High': 10, 'Low': 6, 'Volume': 10}, ignore_index=True)
-        symmetry_df = symmetry_df.append({'Time': 6, 'Open': 10, 'Close': 3, 'High': 10, 'Low': 2, 'Volume': 10}, ignore_index=True)
-        symmetry_df = symmetry_df.append({'Time': 7, 'Open': 3, 'Close': 4, 'High': 4, 'Low': 2, 'Volume': 10}, ignore_index=True)
-        symmetry_df = symmetry_df.append({'Time': 8, 'Open': 4, 'Close': 8, 'High': 14, 'Low': 3, 'Volume': 10}, ignore_index=True)
-        symmetry_df = symmetry_df.append({'Time': 9, 'Open': 8, 'Close': 12, 'High': 12, 'Low': 1, 'Volume': 10}, ignore_index=True)
+        symmetry_df = symmetry_df.append({'Time': 1, 'Open': 3, 'Close': 1, 'High': 5, 'Low': 0, 'Volume': 10, 'Classification': -4}, ignore_index=True)
+        symmetry_df = symmetry_df.append({'Time': 2, 'Open': 1, 'Close': 8, 'High': 8, 'Low': 1, 'Volume': 10, 'Classification': 3}, ignore_index=True)
+        symmetry_df = symmetry_df.append({'Time': 3, 'Open': 8, 'Close': 4, 'High': 8, 'Low': 4, 'Volume': 10, 'Classification': -2}, ignore_index=True)
+        symmetry_df = symmetry_df.append({'Time': 4, 'Open': 4, 'Close': 6, 'High': 6, 'Low': 4, 'Volume': 10, 'Classification': 1}, ignore_index=True)
+        symmetry_df = symmetry_df.append({'Time': 5, 'Open': 6, 'Close': 10, 'High': 10, 'Low': 6, 'Volume': 10, 'Classification': 0}, ignore_index=True)
+        symmetry_df = symmetry_df.append({'Time': 6, 'Open': 10, 'Close': 3, 'High': 10, 'Low': 2, 'Volume': 10, 'Classification': -1}, ignore_index=True)
+        symmetry_df = symmetry_df.append({'Time': 7, 'Open': 3, 'Close': 4, 'High': 4, 'Low': 2, 'Volume': 10, 'Classification': 2}, ignore_index=True)
+        symmetry_df = symmetry_df.append({'Time': 8, 'Open': 4, 'Close': 8, 'High': 14, 'Low': 3, 'Volume': 10, 'Classification': -3}, ignore_index=True)
+        symmetry_df = symmetry_df.append({'Time': 9, 'Open': 8, 'Close': 12, 'High': 12, 'Low': 1, 'Volume': 10, 'Classification': 4}, ignore_index=True)
         
         self.symmetry_df = symmetry_df
     
