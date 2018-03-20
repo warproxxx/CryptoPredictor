@@ -141,44 +141,58 @@ class PriceFunctions():
         ytest = np.array(pd_ytest)
         
         return mean, std, Xtrain, ytrain, Xtest, ytest
-
-    def get_pandas(self, data='cached'):
+    
+    
+    
+    def get_pandas(self, coin='BTC', data='cached'):
         '''
         Parameters:
         data: 'cached' returns cached data. 'download' adds data to cache or redownloads if there is no cache.
-        Returns:
-
-        Data from Bitfinex
-
-       
-        pd_Xtrain: Unnormalized X train as pandas
-        pd_ytrain: Unnormalized y train as pandas
-        pd_Xtest: Unnormalized X test as pandas
-        pd_ytest: Unnormalized y test as pandas
         
+        Returns:
+        Data from Bitfinex
+        
+        df: pandas dataframe of data from bitfinex
         '''
+        
+        if (coin == 'BTC'):
+            finex = BtcFinex()
 
-        finex = BtcFinex()
+            if (data == 'download'):
+                finex.loadData()
 
-        if (data == 'download'):
-            finex.loadData()
-
-        df = finex.getCleanData()
-        df.set_index('Time', inplace=True)
-
+            df = finex.getCleanData()
+            df.set_index('Time', inplace=True)
+        
         df['Percentage Change 24 hours'] = (1 - df['Close']/df.shift(-24)['Close'])
         df['Classification'] = df['Percentage Change 24 hours'].apply(PriceFunctions().percentage_to_classification)
         df.drop('Percentage Change 24 hours', axis=1,inplace=True)
 
-
-        trainTill = math.floor(0.83 * 43281)
+        return df
+    
+    def split_traintest(self, df, ratio=0.83):
+        '''
+        Parameters:
+        df: dataframe to split into training and test set
+        ratio (int optional): The size of training set in percentage
+        
+        
+        Returns:
+        pd_Xtrain: Unnormalized X train as pandas
+        pd_ytrain: Unnormalized y train as pandas
+        pd_Xtest: Unnormalized X test as pandas
+        pd_ytest: Unnormalized y test as pandas
+        '''
+        
+        trainTill = math.floor(ratio * df.shape[0])
         dfTraining = df[:trainTill]
+        
         dfTest = df[trainTill:-24] #Removing last 24 values as it contain Nan
-
-        pd_Xtrain = dfTraining.iloc[:,:-1]
-        pd_ytrain = dfTraining.iloc[:,-1:]
-
-        pd_Xtest = dfTest.iloc[:,:-1]
-        pd_ytest = dfTest.iloc[:,-1:]
-
+        
+        pd_ytrain = dfTraining['Classification']
+        pd_Xtrain = dfTraining.drop('Classification', axis=1)
+        
+        pd_ytest = dfTraining['Classification']
+        pd_Xtest = dfTest.drop('Classification', axis=1)
+        
         return pd_Xtrain, pd_ytrain, pd_Xtest, pd_ytest

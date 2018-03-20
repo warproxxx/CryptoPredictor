@@ -22,11 +22,12 @@ class TechnicalAnalysis:
             
             for j in range(0, self.df.shape[0], i):
                 tempdf = self.df.iloc[j:j+i]
-                dic[currname] = dic[currname].append({'Time': tempdf.index[0], 'Open': tempdf.iloc[0]['Open'], 'Close': tempdf.iloc[-1]['Close'], 'High': max(tempdf['High']), 'Low': min(tempdf['Low']), 'Volume': sum(tempdf['Volume'])}, ignore_index=True) #append returns a new dataframe
+                dic[currname] = dic[currname].append({'Time': tempdf.index[0], 'Open': tempdf.iloc[0]['Open'], 'Close': tempdf.iloc[-1]['Close'], 'High': max(tempdf['High']), 'Low': min(tempdf['Low']), 'Volume': sum(tempdf['Volume']), 'Classification': tempdf.iloc[-1]['Classification'],}, ignore_index=True) #append returns a new dataframe
         
             dic[currname].set_index('Time', inplace=True)  
             dic[currname].index = dic[currname].index.map(int) #convert to int because getting floats in scientific notation
-
+            dic[currname]['Classification'] = dic[currname]['Classification'].astype(int)
+            
         self.dic = dic
         
     def set_dic(self, dic):

@@ -8,7 +8,7 @@ First import the TechnicalAnalysis class
 
     from TechnicalAnalysis import TechnicalAnalysis
 
-Create an instance using pandas dataframe of stock data. The data must contain Close and Volume contain. Other columns are optional. 
+Create an instance using pandas dataframe of stock data. The data should contain: Open, Close, High, Low, Volume and Classification
 
 The values in timeframe refer to times that should be merged. Value of 3 and 6 means each 3 and 6 datas will be merged in which Technical Analysis will be done
 
