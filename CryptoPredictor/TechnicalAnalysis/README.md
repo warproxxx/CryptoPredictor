@@ -38,4 +38,4 @@ Or optionally get the dictionary with different timeframe as keys
 
 	dic = ta.get_dic()
 
-![Pandas Dataframe of data](https://i.imgur.com/ZXObhE4.png)
+![Getting TA data](https://i.imgur.com/kGMGMhd.png)

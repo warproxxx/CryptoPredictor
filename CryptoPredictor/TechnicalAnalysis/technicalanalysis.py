@@ -178,9 +178,7 @@ class TechnicalAnalysis:
                         
             oldloc = index
         
-        return tempdf['obv']
-
-                
+        return tempdf['obv']                
     
     def volumechange(self, df, key, period):
         '''
