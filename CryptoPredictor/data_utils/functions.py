@@ -5,33 +5,7 @@ from CryptoScraper import BtcFinex
 import math
 
 class BasicFunctions():
-    def convert_to_one_hot(self, passedArr, C):
-        '''
-        Converts the one hot value
-
-        Arguments:
-        passedArr -- Numpy array In format [[-4,-3,...4]]
-        C -- The number of classifications
-
-        Returns:
-        array:
-        The value in one hot format.
-        Like:
-        [[1,0,.........0],
-         [0,1,.........0],
-         [0,0,.........1]]
-
-        '''   
-        reshaped = passedArr.reshape(-1)
-        newReshaped = reshaped + 4 #As there are negatives
-
-        digitsLength = np.unique(newReshaped).shape[0]
-
-
-        returnVal= np.eye(C)[newReshaped]
-
-        return(returnVal)
-
+    
     def initialize_mini_batch(self, X, y, batchsize=64, random=0):
         '''
         Creates minibatches from values of X and y.
@@ -86,27 +60,12 @@ class PriceFunctions():
     def percentage_to_classification(self, x):
         #returns a number y [-4,4] depending on how much it went up/down
         y = 0
-
-
-        if (x > 0.2):
-            y = 4
-        elif (0.1 <= x <= 0.2):
-            y = 3
-        elif (0.05 <= x <= 0.1):
-            y = 2
-        elif (0.03 <= x <= 0.05):
+        
+        if (x >= 0):
             y = 1
-        elif (-0.03 <= x <= 0.03):
+        else:
             y = 0
-        elif (-0.05 <= x <= -0.03):
-            y = -1
-        elif (-0.1 <= x <= -0.05):
-            y = -2
-        elif (-0.2 <= x <= -0.1):
-            y = -3
-        elif (x < -0.2):
-            y = -4
-
+            
         return y
     
     def get_numpy(self, pd_Xtrain, pd_ytrain, pd_Xtest, pd_ytest):
@@ -135,25 +94,32 @@ class PriceFunctions():
         pd_XtestNorm = (pd_Xtest - mean)/std
     
         Xtrain = np.array(pd_XtrainNorm)
-        ytrain = np.array(pd_ytrain)
+        ytrain = np.array(pd_ytrain).astype(np.float32)
 
         Xtest = np.array(pd_XtestNorm) 
-        ytest = np.array(pd_ytest)
+        ytest = np.array(pd_ytest).astype(np.float32)
         
         return mean, std, Xtrain, ytrain, Xtest, ytest
     
-    
-    
-    def get_pandas(self, coin='BTC', data='cached'):
+    def get_pandas(self, targetdays=24, absolute=True, coin='BTC', data='cached'):
         '''
         Parameters:
-        data: 'cached' returns cached data. 'download' adds data to cache or redownloads if there is no cache.
+        data: (int) (optional)
+        'cached' returns cached data. 'download' adds data to cache or redownloads if there is no cache.
+        
+        targetdays: (int) (optional)
+        specify the target number of timeframe from which percentage change is to be calculated. 24 for daily change in hourly. 1 for daily change in daily 
+        
+        negative: (boolean) (optional)
+        If set to true, absolute value of percentage change is returned
         
         Returns:
-        Data from Bitfinex
         
-        df: pandas dataframe of data from bitfinex
+        df: 
+        pandas dataframe of data from bitfinex
         '''
+        
+        targetdays = -1 * targetdays
         
         if (coin == 'BTC'):
             finex = BtcFinex()
@@ -164,10 +130,17 @@ class PriceFunctions():
             df = finex.getCleanData()
             df.set_index('Time', inplace=True)
         
-        df['Percentage Change 24 hours'] = (1 - df['Close']/df.shift(-24)['Close'])
-        df['Classification'] = df['Percentage Change 24 hours'].apply(PriceFunctions().percentage_to_classification)
-        df.drop('Percentage Change 24 hours', axis=1,inplace=True)
-
+        df['Percentage Change'] = (1 - df['Close']/df.shift(targetdays)['Close'])
+        df['Classification'] = df['Percentage Change'].apply(PriceFunctions().percentage_to_classification)
+        
+        df['Classification'] = df['Classification'].astype(np.float32)
+        df['Percentage Change'] = df['Percentage Change'].astype(np.float32)
+        
+        if (absolute == True):
+            df['Percentage Change'] = df['Percentage Change'].abs()
+        
+        df = df[:targetdays]
+        
         return df
     
     def split_traintest(self, df, ratio=0.83):
@@ -186,13 +159,12 @@ class PriceFunctions():
         
         trainTill = math.floor(ratio * df.shape[0])
         dfTraining = df[:trainTill]
+        dfTest = df[trainTill:]
         
-        dfTest = df[trainTill:-24] #Removing last 24 values as it contain Nan
+        pd_ytrain = dfTraining[['Classification', 'Percentage Change']]
+        pd_Xtrain = dfTraining.drop(['Classification', 'Percentage Change'], axis=1)
         
-        pd_ytrain = dfTraining['Classification']
-        pd_Xtrain = dfTraining.drop('Classification', axis=1)
-        
-        pd_ytest = dfTraining['Classification']
-        pd_Xtest = dfTest.drop('Classification', axis=1)
+        pd_ytest = dfTest[['Classification', 'Percentage Change']]
+        pd_Xtest = dfTest.drop(['Classification', 'Percentage Change'], axis=1)
         
         return pd_Xtrain, pd_ytrain, pd_Xtest, pd_ytest
