@@ -1,4 +1,5 @@
 {
+  "CryptoPredictor/TechnicalAnalysis/tests/test_technicalanalysis.py::TestTechnicalAnalysis::()": true,
   "src/CryptoScraper/tests/test_bitfinex.py": true,
   "test/CryptoScraper/test_bitfinex.py": true,
   "test/data_utils/test_functions.py": true,
