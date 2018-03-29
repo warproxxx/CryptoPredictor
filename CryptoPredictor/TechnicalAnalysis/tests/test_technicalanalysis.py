@@ -3,8 +3,6 @@ import numpy as np
 
 from TechnicalAnalysis import TechnicalAnalysis
 
-#test not happen. probably because its class
-
 class TestTechnicalAnalysis():
     
     #run before test
