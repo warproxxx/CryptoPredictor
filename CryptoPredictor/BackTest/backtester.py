@@ -1,10 +1,11 @@
 import pandas as pd
-
+import json
 class Backtester:
-    
+
     '''
-    Strategy is based on this book:
-    Successful Algorithmic Trading by Michael L. Halls-Moore
+    Backtesting module that does everything
+
+    At the end, in positions, a new column - current net worth should be added
     '''
     
     #add margin rates and margin size too later
@@ -72,7 +73,7 @@ class Backtester:
     
     def set_positions(self, df):
         self.positions = df
-        
+    
     def get_positions(self):
         return self.positions
         
@@ -123,9 +124,74 @@ class Backtester:
                 return True
             else:
                 return avilable['short'] 
-            
+        
+    def close_reverse_position(self, signal, currprice, date):
+        ''' 
+        Close all reverse positions. If long signal is generated and short position is open, close it and vice versa
+        
+        Parameters:
+        ___________
 
-    def perform_trade(self, date, coin, price, amount, tradetype, postion):
+        signal: (string)
+        'LONG' or 'SHORT'
+
+        currprice: (dict)
+        dictionary containing symbols and their price while closing position
+
+        date: (int)
+        Date in which the trade takes place
+        '''
+        
+        #perform reverse trade
+        #call perform_trade function to perform the reverse trade and change status to inactive
+        if (signal == 'LONG'):
+            reverse = 'SHORT'
+        elif (signal == 'SHORT'):
+            reverse = 'LONG'
+            
+        
+        closingsignals = self.positions[(self.positions['Status'] == 'ACTIVE') & (self.positions['Position'] == reverse)]
+        
+        if (self.positions.shape[0] == 0):
+            oldBankroll = self.bankroll
+        else:
+            oldBankroll = self.positions['Bankroll'].iloc[-1]
+
+        #now for given coin close at the current price
+        for coin in currprice:
+            requiredcoins = closingsignals[self.positions['Coin'] == coin]
+
+            if(closingsignals[self.positions['Coin'] == coin].shape[0] != 0): #this also happens automatically with the other warning
+                perChange = (currprice[coin] - requiredcoins['Price'])/requiredcoins['Price']
+                
+                if (reverse == 'LONG'):
+                    newAmounts = requiredcoins['Amount'] + requiredcoins['Amount'] * perChange
+                elif (reverse == 'SHORT'):
+                    requiredcoins['Amount'] = requiredcoins['Amount'] * -1
+                    newAmounts = requiredcoins['Amount'] + requiredcoins['Amount'] * perChange
+
+                
+                closingChange = sum(newAmounts)
+                
+
+                newData = pd.Series({'Date': date, 'Coin': coin, 'Price': currprice[coin], 'Bankroll': oldBankroll+closingChange, 'Amount': abs(sum(requiredcoins['Amount'])), 'Type': 'CLOSE', 'Position': signal, 'Status': 'INACTIVE'})
+                #also change old ones to inactive. Append newData too on the dataframe at end. And works for long. also check for short
+                self.positions = self.positions.append(newData, ignore_index=True)
+                oldBankroll = oldBankroll+closingChange
+
+        self.positions.loc[(self.positions['Status'] == 'ACTIVE') & (self.positions['Position'] == reverse), 'Status'] = 'INACTIVE'
+
+
+    def close_all_positions(self, date, currprice):
+        '''
+        Just call the close reverse position twice
+        '''
+        #I think getting the coin names is not required
+
+        self.close_reverse_position('LONG', currprice, date)
+        self.close_reverse_position('SHORT', currprice, date)
+
+    def perform_trade(self, date, coin, currprice, amount, tradetype, position):
         '''
         Perform trade and change dataframe to reflect it
         
@@ -138,8 +204,8 @@ class Backtester:
         coin (3 words):
         Symbol like btc
         
-        price (float):
-        The price at which trade took place
+        currprice: (dict)
+        dictionary containing symbols and their price
         
         amount: (int)
         In money, how many's to open
@@ -157,25 +223,21 @@ class Backtester:
         #The initial bankroll value should be derived from the variable
         #after that from previous +- trade
         #bankroll currently contains new value after position is opened
-        
+
+        self.close_reverse_position(position, currprice, date) #Close reverse positions before performing
+
         if (self.positions.shape[0] == 0):
             curbankroll = self.bankroll
         else:
             curbankroll = self.positions['Bankroll'].iloc[-1]
-        
-        #also set active position to inactive
-        ser = pd.Series({'Date': date, 'Coin': coin, 'Price': price, 'Bankroll': curbankroll-amount, 'Amount': amount, 'Type': tradetype, 'Position': postion, 'Status': 'ACTIVE'})
+
+        if position == 'LONG':
+            newbankroll = curbankroll-amount
+        elif position == 'SHORT':
+            newbankroll = curbankroll+amount
+
+        ser = pd.Series({'Date': date, 'Coin': coin, 'Price': currprice[coin], 'Bankroll': newbankroll, 'Amount': amount, 'Type': tradetype, 'Position': position, 'Status': 'ACTIVE'})
         self.positions = self.positions.append(ser, ignore_index=True)
-        
-    def close_reverse_position(self, signal):
-        ''' Close all reverse positions. If long signal is generated and short position is open, close it and vice versa'''
-        #get signal
-        #perform reverse trade
-        #call perform_trade function to perform the reverse trade and change status to inactive
-        pass
-        
-    def close_all_positions(self):
-        pass
     
     def find_best(self):
         '''
@@ -220,19 +282,22 @@ class Backtester:
         
     def perform_backtest(self):
         data = self.find_best()
-        
+
         for dic in data:
             prob = dic['probablity']
             perc = dic['percentage']
             coin = dic['coin']
             date = dic['date']
             pos = dic['position']
+            normprob = dic['probablitynorm']
+
             
-            if (pos == 'LONG'):
-                #close if reverse position is open
-                pass
-            else:
-                pass
+            
+            #check if performable
+            #add conditions and find amount this is doable
+            #perform trade closes reverse positions
+                
+
         
 
 
