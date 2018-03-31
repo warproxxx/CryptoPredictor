@@ -87,17 +87,25 @@ class Backtester:
         '''
         
         avilable = {}
+
+        if (self.positions.shape[0] == 0):
+            currBankroll = self.bankroll
+            dfsum = 0
+        else:
+            currBankroll = self.positions['Bankroll'].iloc[-1]
+            activePositions = self.positions[self.positions['Status'] == 'ACTIVE']
         
+            tempdf = activePositions.apply(lambda x: x['Amount'] * -1 if x['Position'] == 'SHORT' else x['Amount'], axis=1)
+            
+            if (tempdf.shape[0] == 0):
+                dfsum =0
+            else:
+                dfsum = sum(tempdf)
+
+        totalValue = currBankroll + dfsum
         
-        activePositions = self.positions[self.positions['Status'] == 'ACTIVE']
-        
-        tempdf = activePositions.apply(lambda x: x['Amount'] * -1 if x['Position'] == 'SHORT' else x['Amount'], axis=1)
-        
-        totalValue = activePositions['Bankroll'].iloc[-1] + sum(tempdf)
-        
-        avilable['long'] = self.positions['Bankroll'].iloc[-1]
+        avilable['long'] = currBankroll
         avilable['short'] = totalValue * 2 - avilable['long']
-        
         return avilable
         
     def check_validity(self, position, size):
@@ -113,17 +121,23 @@ class Backtester:
         
         avilable = self.get_avilableamount()
 
+        returnVals = {}
+
         if position == 'LONG':
             if (avilable['long'] >= size):
-                return True
+                returnVals['boolean'] = True
             else:
-                return avilable['long'] 
+                returnVals['boolean'] = False
+                returnVals['avilable'] = avilable['long'] 
             
         elif position == 'SHORT':
             if (avilable['short'] >= size):
-                return True
+                returnVals['boolean'] = True
             else:
-                return avilable['short'] 
+                returnVals['boolean'] = False
+                returnVals['avilable'] = avilable['long'] 
+
+        return returnVals
         
     def close_reverse_position(self, signal, currprice, date):
         ''' 
@@ -236,7 +250,8 @@ class Backtester:
         elif position == 'SHORT':
             newbankroll = curbankroll+amount
 
-        ser = pd.Series({'Date': date, 'Coin': coin, 'Price': currprice[coin], 'Bankroll': newbankroll, 'Amount': amount, 'Type': tradetype, 'Position': position, 'Status': 'ACTIVE'})
+        ser = pd.Series({'Date': date, 'Coin': coin, 'Price': currprice[coin], 'Bankroll': newbankroll, 'Amount': abs(amount), 'Type': tradetype, 'Position': position, 'Status': 'ACTIVE'})
+        
         self.positions = self.positions.append(ser, ignore_index=True)
     
     def find_best(self):
@@ -291,29 +306,35 @@ class Backtester:
             pos = dic['position']
             normprob = dic['probablitynorm']
 
+            positionPercentage = 0
+
+            if (normprob > 0.75 or perc > 0.007):
+                positionPercentage = 1
+            elif (normprob > 0.65 or perc > 0.005):
+                positionPercentage = 0.5
+            elif (normprob > 0.55 or perc > 0.002):
+                positionPercentage = 0.3
             
-            
-            #check if performable
-            #add conditions and find amount this is doable
-            #perform trade closes reverse positions
+            if (positionPercentage !=0):
+                currprice = {}
+
+                for key in self.bars:
+                    currprice[key] = self.bars[key][self.bars[key]['Date'] == date].iloc[0]['Close']
+
+                self.close_reverse_position(pos, currprice, date) #Close reverse positions before opening new
+
+                if (self.positions.shape[0] == 0):
+                    currBankroll = self.bankroll
+                else:
+                    currBankroll = self.positions['Bankroll'].iloc[-1]
+
+                posSize = int(positionPercentage * currBankroll)
+                validity = self.check_validity(position=pos, size=posSize)
                 
-
+                if (validity['boolean'] == True):
+                    self.perform_trade(date=date, coin=coin, currprice=currprice, amount=posSize, tradetype='OPEN', position=pos)
+                else:
+                    self.perform_trade(date=date, coin=coin, currprice=currprice, amount=validity['avilable'], tradetype='OPEN', position=pos)
+                    
         
-
-
-        #write pseudocode first:
-            #if 1
-                #If direction > 2% or confidence >0.5 go long with 20%
-                #If direction > 3% or confidence >0.6 go long with 50%
-                #If direction > 4% or confidence >0.7 go long with 100%
-            #if 0
-                #confidence = 1 - confidence
-                #then as above but short
-
-            #Next day:
-                #If already long and positive, keep going long as strategy until 100%
-                #If already long and negative, close position
-                #Vice Versa
-
-
-        #reset best at end
+        self.close_all_positions(date=date, currprice = currprice)
