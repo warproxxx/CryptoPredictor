@@ -1,5 +1,8 @@
 import pandas as pd
 import json
+import matplotlib.pyplot as plt
+from BackTest.calculations import Calculations
+
 class Backtester:
 
     '''
@@ -48,7 +51,8 @@ class Backtester:
         #short open meaning opening short
         #short close meaning closing short 
         self.positions = pd.DataFrame(columns=['Date', 'Coin', 'Price', 'Bankroll', 'Amount', 'Type', 'Position', 'Status'])
-        
+        self.allValues = [] #all values in find best
+        self.portfolioValue = pd.DataFrame(columns=['Date', 'Value'])
         self.perform_assertion()
     
     def perform_assertion(self):
@@ -76,6 +80,9 @@ class Backtester:
     
     def get_positions(self):
         return self.positions
+
+    def get_allValues(self):
+        return self.allValues
         
     def get_avilableamount(self):
         '''
@@ -106,9 +113,12 @@ class Backtester:
         
         avilable['long'] = currBankroll
         avilable['short'] = totalValue * 2 - avilable['long']
-        return avilable
+        return avilable, totalValue
         
-    def check_validity(self, position, size):
+    def get_portfolioValue(self):
+        return self.portfolioValue
+
+    def check_validity(self, position, size, date=''):
         '''
         Check if a long or short position can be opened currently.
         
@@ -119,9 +129,11 @@ class Backtester:
         The size of long and short that can be performed if not performable
         '''
         
-        avilable = self.get_avilableamount()
+        avilable,totalValue = self.get_avilableamount()
 
         returnVals = {}
+
+        self.portfolioValue = self.portfolioValue.append({'Date': date, 'Value': totalValue}, ignore_index=True)
 
         if position == 'LONG':
             if (avilable['long'] >= size):
@@ -135,10 +147,18 @@ class Backtester:
                 returnVals['boolean'] = True
             else:
                 returnVals['boolean'] = False
-                returnVals['avilable'] = avilable['long'] 
+                returnVals['avilable'] = avilable['short'] 
 
         return returnVals
-        
+    
+    def get_currentWorth(self):
+        '''
+        Evaluates net worth from positions that are currently open
+        '''
+        activePositions = self.positions[self.positions['Status'] == 'ACTIVE']
+        tempdf = activePositions.apply(lambda x: x['Amount'] * -1 if x['Position'] == 'SHORT' else x['Amount'], axis=1)
+        print(self.positions)
+
     def close_reverse_position(self, signal, currprice, date):
         ''' 
         Close all reverse positions. If long signal is generated and short position is open, close it and vice versa
@@ -269,7 +289,12 @@ class Backtester:
         best = {'probablitynorm': 0}
         
         for i in range(shape): #loop through dataframe
+
+            values = pd.DataFrame(columns=['coin', 'date', 'probablity', 'probablitynorm', 'percentage', 'position'])
+            
             for idx, key in enumerate(keyList): #to loop through dict and compare values of different
+                value = {}
+
                 probablity = self.signals[key][i][0]
                 
                 if probablity < 0.5: #if i feel confused - it is working. I need the smaller number when its smaller and bigger when it is bigger
@@ -289,16 +314,30 @@ class Backtester:
                     else:
                         best['position'] = 'LONG'
                     
-                    
+                
+                value['coin'] = key
+                value['date'] = self.bars[key]['Date'][i]
+                value['probablity'] = probablity
+                value['probablitynorm'] = x
+                value['percentage'] = self.signals[key][i][1]
+                
+                if (probablity < 0.5):
+                    value['position'] = 'SHORT'
+                else:
+                    value['position'] = 'LONG'
+
+                values = values.append(value, ignore_index=True)
+
+            self.allValues.append(values)
             bests.append(best)
             best = {'probablitynorm': 0}
         
         return bests
-        
+
     def perform_backtest(self):
         data = self.find_best()
 
-        for dic in data:
+        for i, dic in enumerate(data):
             prob = dic['probablity']
             perc = dic['percentage']
             coin = dic['coin']
@@ -314,13 +353,16 @@ class Backtester:
                 positionPercentage = 0.5
             elif (normprob > 0.55 or perc > 0.002):
                 positionPercentage = 0.3
-            
+
+            currprice = {}
+
+            for key in self.bars:
+                currprice[key] = self.bars[key][self.bars[key]['Date'] == date].iloc[0]['Close']
+
+            #print(self.allValues[i][self.allValues[i]['coin'] == coin]['position'])
+            #if there is a active LONG in a given coin close in that coin only - possibly. This after - worth, chart, sharpe ration, drawdown.
+
             if (positionPercentage !=0):
-                currprice = {}
-
-                for key in self.bars:
-                    currprice[key] = self.bars[key][self.bars[key]['Date'] == date].iloc[0]['Close']
-
                 self.close_reverse_position(pos, currprice, date) #Close reverse positions before opening new
 
                 if (self.positions.shape[0] == 0):
@@ -329,12 +371,58 @@ class Backtester:
                     currBankroll = self.positions['Bankroll'].iloc[-1]
 
                 posSize = int(positionPercentage * currBankroll)
-                validity = self.check_validity(position=pos, size=posSize)
-                
+                validity = self.check_validity(position=pos, size=posSize, date=date)
+
                 if (validity['boolean'] == True):
                     self.perform_trade(date=date, coin=coin, currprice=currprice, amount=posSize, tradetype='OPEN', position=pos)
                 else:
                     self.perform_trade(date=date, coin=coin, currprice=currprice, amount=validity['avilable'], tradetype='OPEN', position=pos)
-                    
-        
+
+            # elif (pos == 'LONG' and self.positions.iloc[-1]['Status'] == 'ACTIVE' and self.positions.iloc[-1]['Position'] == 'SHORT'): #but it has to be that coin the signal is in.
+            #     print('Manual Close Long')
+            #     self.close_reverse_position(pos, currprice, date)
+            # elif (pos == 'SHORT' and self.positions.iloc[-1]['Status'] == 'ACTIVE' and self.positions.iloc[-1]['Position'] == 'LONG'):
+            #     print('Manual Close Short at {}'.format(date))
+            #     self.close_reverse_position(pos, currprice, date)
+
         self.close_all_positions(date=date, currprice = currprice)
+
+    def get_outcome(self):
+        '''
+        Calculates Sharpe Ratio, Shortino Ratio, Drawdown of portfolio strategy and individual assets
+        
+        Requirement:
+        self.bars, self.position and self.portfolioValue should be defined. So backtest function most run beforehand
+        '''
+        fig, axes = plt.subplots(figsize=(12,6))
+
+        axes.plot(self.portfolioValue['Value'], label='Portfolio') 
+        c = Calculations()
+        sharpe = round(c.sharpe_ratio(self.portfolioValue['Value']), 3)
+        calmar = round(c.calmar_ratio(self.portfolioValue['Value']), 3)
+        sortino = round(c.sortino_ratio(self.portfolioValue['Value']), 3)
+        drawDown = c.drawDown(self.portfolioValue['Value'])
+        totalReturn = c.total_return(self.portfolioValue['Value'])
+
+        print("Portfolio Stats:\nTotal Return: {}%".format(round(totalReturn, 2)))
+        print("Sharpe Ratio: {} Calmar Ratio: {} Sortino Ratio: {} Maximum Drawdown: {}%".format(sharpe, calmar, sortino, round(drawDown, 2)))
+
+        for coin in self.bars:
+            self.bars[coin]['Value'] = self.bankroll
+            self.bars[coin]['Value'] = self.bars[coin]['Value'].astype(float)
+            change = ((self.bars[coin]['Close'] - self.bars[coin]['Close'][0])/self.bars[coin]['Close'][0]) + 1
+
+            sharpe = round(c.sharpe_ratio(self.bars[coin]['Close']), 3)
+            calmar = round(c.calmar_ratio(self.bars[coin]['Close']), 3)
+            sortino = round(c.sortino_ratio(self.bars[coin]['Close']), 3)
+            drawDown = round(c.drawDown(self.bars[coin]['Close']), 3)
+            totalReturn = round(c.total_return(self.bars[coin]['Close']), 3)
+
+            print("\n{} Portfolio:\nTotal Return: {}%".format(coin, round(totalReturn, 2)))
+            print("Sharpe Ratio: {} Calmar Ratio: {} Sortino Ratio: {} Maximum Drawdown: {}%".format(sharpe, calmar, sortino, round(drawDown, 2)))
+
+
+            self.bars[coin]['Value'] = self.bars[coin]['Value'] * change
+            axes.plot(self.bars[coin]['Value'], label=coin)
+        
+        axes.legend(loc=2)
