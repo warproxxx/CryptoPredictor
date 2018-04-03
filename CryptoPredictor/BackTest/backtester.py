@@ -12,7 +12,7 @@ class Backtester:
     '''
     
     #add margin rates and margin size too later
-    def __init__(self, bars, signals, period=1, bankroll=10000, stake=1000, comission=0.2, slippage=0):
+    def __init__(self, bars, signals, period=1, bankroll=10000, stake=1000, comission=0, slippage=0):
         '''
         Parameters:
         ___________
@@ -67,6 +67,7 @@ class Backtester:
             if i > 0:
                 try:
                     assert(self.bars[keyList[i]]['Date'].equals(self.bars[keyList[i-1]]['Date']))
+                    self.bars[keyList[i]]['Date'] = pd.to_datetime(self.bars[keyList[i]]['Date']) #converting to pandas date if they are not like that
                 except AssertionError:
                     print("The dates in your dataframe do not match. The dates of {} and {} are different at".format(keyList[i], keyList[i-1]))
                 
@@ -204,11 +205,11 @@ class Backtester:
                     requiredcoins['Amount'] = requiredcoins['Amount'] * -1
                     newAmounts = requiredcoins['Amount'] + requiredcoins['Amount'] * perChange
 
-                
-                closingChange = sum(newAmounts)
+                amount = sum(requiredcoins['Amount'])
+                closingChange = sum(newAmounts) - ((self.comission/100) * abs(amount))
                 
 
-                newData = pd.Series({'Date': date, 'Coin': coin, 'Price': currprice[coin], 'Bankroll': oldBankroll+closingChange, 'Amount': abs(sum(requiredcoins['Amount'])), 'Type': 'CLOSE', 'Position': signal, 'Status': 'INACTIVE'})
+                newData = pd.Series({'Date': date, 'Coin': coin, 'Price': currprice[coin], 'Bankroll': oldBankroll+closingChange, 'Amount': abs(amount), 'Type': 'CLOSE', 'Position': signal, 'Status': 'INACTIVE'})
                 #also change old ones to inactive. Append newData too on the dataframe at end. And works for long. also check for short
                 self.positions = self.positions.append(newData, ignore_index=True)
                 oldBankroll = oldBankroll+closingChange
@@ -264,6 +265,8 @@ class Backtester:
             curbankroll = self.bankroll
         else:
             curbankroll = self.positions['Bankroll'].iloc[-1]
+
+        amount = amount - ((self.comission/100) * abs(amount))
 
         if position == 'LONG':
             newbankroll = curbankroll-amount
@@ -335,6 +338,10 @@ class Backtester:
         return bests
 
     def perform_backtest(self):
+        '''
+        The main method in the file that calls other methods to backtest a given strategy.
+
+        '''
         data = self.find_best()
 
         for i, dic in enumerate(data):
@@ -362,6 +369,11 @@ class Backtester:
             #print(self.allValues[i][self.allValues[i]['coin'] == coin]['position'])
             #if there is a active LONG in a given coin close in that coin only - possibly. This after - worth, chart, sharpe ration, drawdown.
 
+            # if (pos == 'LONG'):
+            #     oppositeVals = self.positions[self.positions['Status'] == 'ACTIVE' and self.positions['Postion'] == 'SHORT' and self.positions['Coin'] == coin]
+            # elif (pos == 'SHORT'):
+            #     oppositeVals = self.positions[self.positions['Status'] == 'ACTIVE' and self.positions['Postion'] == 'LONG' and self.positions['Coin'] == coin]
+
             if (positionPercentage !=0):
                 self.close_reverse_position(pos, currprice, date) #Close reverse positions before opening new
 
@@ -378,7 +390,9 @@ class Backtester:
                 else:
                     self.perform_trade(date=date, coin=coin, currprice=currprice, amount=validity['avilable'], tradetype='OPEN', position=pos)
 
-            # elif (pos == 'LONG' and self.positions.iloc[-1]['Status'] == 'ACTIVE' and self.positions.iloc[-1]['Position'] == 'SHORT'): #but it has to be that coin the signal is in.
+            # if (oppositeVals.shape[0] >= 0):
+            #     print('Reverse signal received')
+            # elif (pos == 'LONG' and (self.positions['Status'] == 'ACTIVE' and self.positions.iloc[-1]['Position'] == 'SHORT'): #but it has to be that coin the signal is in.
             #     print('Manual Close Long')
             #     self.close_reverse_position(pos, currprice, date)
             # elif (pos == 'SHORT' and self.positions.iloc[-1]['Status'] == 'ACTIVE' and self.positions.iloc[-1]['Position'] == 'LONG'):
@@ -394,9 +408,25 @@ class Backtester:
         Requirement:
         self.bars, self.position and self.portfolioValue should be defined. So backtest function most run beforehand
         '''
-        fig, axes = plt.subplots(figsize=(12,6))
+        fig, axes = plt.subplots(nrows=3)
 
-        axes.plot(self.portfolioValue['Value'], label='Portfolio') 
+        fig.set_figheight(18)
+        fig.set_figwidth(10)
+
+        #self.portfolioValue['Date']
+        axes[0].set_title('Portfolio Movement')
+        axes[0].plot(self.portfolioValue['Date'], self.portfolioValue['Value'], label='Portfolio') 
+        
+        axes[1].set_title('Porfolio Change')
+        axes[1].bar(self.portfolioValue['Date'], self.portfolioValue['Value'].pct_change())
+        self.positions['Rough'] = self.positions.apply(lambda x: x['Amount'] * -1 if x['Position'] == 'SHORT' else x['Amount'], axis=1)
+        
+ 
+        axes[2].set_title('Portfolio Position')
+        axes[2].bar(self.positions['Date'], self.positions['Rough'], width=0.05)
+
+        self.positions.drop('Rough', axis=1, inplace=True)
+
         c = Calculations()
         sharpe = round(c.sharpe_ratio(self.portfolioValue['Value']), 3)
         calmar = round(c.calmar_ratio(self.portfolioValue['Value']), 3)
@@ -408,6 +438,7 @@ class Backtester:
         print("Sharpe Ratio: {} Calmar Ratio: {} Sortino Ratio: {} Maximum Drawdown: {}%".format(sharpe, calmar, sortino, round(drawDown, 2)))
 
         for coin in self.bars:
+
             self.bars[coin]['Value'] = self.bankroll
             self.bars[coin]['Value'] = self.bars[coin]['Value'].astype(float)
             change = ((self.bars[coin]['Close'] - self.bars[coin]['Close'][0])/self.bars[coin]['Close'][0]) + 1
@@ -423,6 +454,8 @@ class Backtester:
 
 
             self.bars[coin]['Value'] = self.bars[coin]['Value'] * change
-            axes.plot(self.bars[coin]['Value'], label=coin)
+
+            #self.bars[coin]['Date']
+            axes[0].plot(self.bars[coin]['Date'], self.bars[coin]['Value'], label=coin)
         
-        axes.legend(loc=2)
+        axes[0].legend(loc=2)

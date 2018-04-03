@@ -2,7 +2,9 @@ import numpy as np
 import pandas as pd
 
 
-class Calculations:    
+class Calculations:
+ 
+
     def sharpe_ratio(self, data):
         '''
         http://www.edge-fund.com/Lo02.pdf
