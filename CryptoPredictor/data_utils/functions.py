@@ -33,8 +33,8 @@ class BasicFunctions():
         divide = X.shape[1] // batchsize
 
         for i in range(1,divide+1):
-            batchX = X[:,:64]
-            batchY = y[:,:64]
+            batchX = X[:,:batchsize]
+            batchY = y[:,:batchsize]
 
             batches.append((batchX,batchY))
             X = X[:,batchsize:]

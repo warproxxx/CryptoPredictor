@@ -102,15 +102,15 @@ class Backtester:
         else:
             currBankroll = self.positions['Bankroll'].iloc[-1]
             activePositions = self.positions[self.positions['Status'] == 'ACTIVE']
-        
-            tempdf = activePositions.apply(lambda x: x['Amount'] * -1 if x['Position'] == 'SHORT' else x['Amount'], axis=1)
+ 
+            tempdf = activePositions.apply(lambda x: (x['Amount']/x['Price']) * -1 if x['Position'] == 'SHORT' else (x['Amount']/x['Price']), axis=1) #x['Amount']/x['Price'] to get value in coin.
             
             if (tempdf.shape[0] == 0):
                 dfsum =0
             else:
-                dfsum = sum(tempdf)
+                dfsum = sum(tempdf) * activePositions['Price'].iloc[-1]
 
-        totalValue = currBankroll + dfsum
+        totalValue = currBankroll + dfsum #change should be made to dfsum to get current close price and calculate the worth.
         
         avilable['long'] = currBankroll
         avilable['short'] = totalValue * 2 - avilable['long']
