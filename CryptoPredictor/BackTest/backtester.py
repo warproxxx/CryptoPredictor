@@ -2,6 +2,9 @@ import pandas as pd
 import json
 import matplotlib.pyplot as plt
 from BackTest.calculations import Calculations
+import datetime
+import matplotlib
+import matplotlib.dates as mdates
 
 class Backtester:
 
@@ -105,6 +108,7 @@ class Backtester:
  
             tempdf = activePositions.apply(lambda x: (x['Amount']/x['Price']) * -1 if x['Position'] == 'SHORT' else (x['Amount']/x['Price']), axis=1) #x['Amount']/x['Price'] to get value in coin.
             
+            
             if (tempdf.shape[0] == 0):
                 dfsum =0
             else:
@@ -114,6 +118,15 @@ class Backtester:
         
         avilable['long'] = currBankroll
         avilable['short'] = totalValue * 2 - avilable['long']
+
+        if (avilable['short'] < 0):
+            avilable['short'] = 0
+        
+        if (avilable['long'] < 0):
+            avilable['long'] = 0
+
+        #print("dfsum: {} Avilable: {} Total Value: {}".format(dfsum, avilable, totalValue)) #the new change in value calculation has caused issue in short
+
         return avilable, totalValue
         
     def get_portfolioValue(self):
@@ -413,8 +426,12 @@ class Backtester:
         fig.set_figheight(18)
         fig.set_figwidth(10)
 
-        #self.portfolioValue['Date']
+        self.portfolioValue['Date'] = [datetime.datetime.fromtimestamp(x) for x in self.portfolioValue['Date']]
+        self.positions['Date'] = [datetime.datetime.fromtimestamp(x) for x in self.positions['Date']]
+
         axes[0].set_title('Portfolio Movement')
+
+
         axes[0].plot(self.portfolioValue['Date'], self.portfolioValue['Value'], label='Portfolio') 
         
         axes[1].set_title('Porfolio Change')
@@ -456,6 +473,7 @@ class Backtester:
             self.bars[coin]['Value'] = self.bars[coin]['Value'] * change
 
             #self.bars[coin]['Date']
-            axes[0].plot(self.bars[coin]['Date'], self.bars[coin]['Value'], label=coin)
+            axes[0].plot(self.portfolioValue['Date'], self.bars[coin]['Value'], label=coin)
+
         
         axes[0].legend(loc=2)
