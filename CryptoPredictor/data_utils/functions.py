@@ -167,4 +167,10 @@ class PriceFunctions():
         pd_ytest = dfTest[['Classification', 'Percentage Change']]
         pd_Xtest = dfTest.drop(['Classification', 'Percentage Change'], axis=1)
         
+        #to be compatible with the backtest code
+        pd_Xtrain['Date'] = pd_Xtrain.index
+        pd_Xtest['Date'] = pd_Xtest.index
+        pd_Xtrain.reset_index(drop = True, inplace = True)
+        pd_Xtest.reset_index(drop = True, inplace = True)
+        
         return pd_Xtrain, pd_ytrain, pd_Xtest, pd_ytest

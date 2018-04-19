@@ -15,7 +15,7 @@ class Backtester:
     '''
     
     #add margin rates and margin size too later
-    def __init__(self, bars, signals, period=1, bankroll=10000, stake=1000, comission=0, slippage=0):
+    def __init__(self, bars, signals, period=1, bankroll=10000, stake=1000, comission=0, slippage=0, maxper=1):
         '''
         Parameters:
         ___________
@@ -40,6 +40,9 @@ class Backtester:
         
         slippage (int optional):
         Slippage per trade in percentage (out of 100)
+
+        maxper (int optional):
+        Maximum allocated in a trade if probablity is great
         '''
         self.bars = bars
         self.signals = signals
@@ -48,6 +51,8 @@ class Backtester:
         self.stake = stake
         self.comission = comission
         self.slippage = slippage
+        self.maxper = maxper
+
         #Type has open or close. Position has long or short. So 
         #long close means closing short
         #long open mean opening long
@@ -57,6 +62,8 @@ class Backtester:
         self.allValues = [] #all values in find best
         self.portfolioValue = pd.DataFrame(columns=['Date', 'Value'])
         self.perform_assertion()
+        self.wentZero = 0 #to track if ever went to zero
+        
     
     def perform_assertion(self):
         '''
@@ -147,7 +154,15 @@ class Backtester:
 
         returnVals = {}
 
+        if (totalValue < 0): #forced liquidation
+            self.wentZero = 1
+            
+        if (self.wentZero == 1):
+            totalValue = 0 #can remove it temporarily
+            
         self.portfolioValue = self.portfolioValue.append({'Date': date, 'Value': totalValue}, ignore_index=True)
+        
+
 
         if position == 'LONG':
             if (avilable['long'] >= size):
@@ -358,6 +373,13 @@ class Backtester:
         data = self.find_best()
 
         for i, dic in enumerate(data):
+        
+            avilable,totalValue = self.get_avilableamount()
+            
+            if (totalValue < 0):
+                totalValue = 0 #change to 0 or not
+            
+                
             prob = dic['probablity']
             perc = dic['percentage']
             coin = dic['coin']
@@ -368,11 +390,11 @@ class Backtester:
             positionPercentage = 0
 
             if (normprob > 0.75 or perc > 0.007):
-                positionPercentage = 1
+                positionPercentage = self.maxper
             elif (normprob > 0.65 or perc > 0.005):
-                positionPercentage = 0.5
+                positionPercentage = self.maxper/2
             elif (normprob > 0.55 or perc > 0.002):
-                positionPercentage = 0.3
+                positionPercentage = self.maxper/3.3
 
             currprice = {}
 
