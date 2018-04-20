@@ -7,30 +7,30 @@ class TestTechnicalAnalysis():
     
     #run before test
     def setup_method(self, test_method): 
-        self.shape_df = pd.DataFrame(columns=['Time', 'Open', 'Close', 'High', 'Low', 'Volume'])
+        self.shape_df = pd.DataFrame(columns=['Date', 'Open', 'Close', 'High', 'Low', 'Volume'])
         
         #might be better if there are negatives and positives too in different part. Do it.
         for i in range(100):
-            self.shape_df = self.shape_df.append({'Time': i, 'Open': i, 'Close': i, 'High': i, 'Low': i, 'Volume': i, 'Classification':i, 'Percentage Change': i}, ignore_index=True)
+            self.shape_df = self.shape_df.append({'Date': i, 'Open': i, 'Close': i, 'High': i, 'Low': i, 'Volume': i, 'Classification':i, 'Percentage Change': i}, ignore_index=True)
         
-        self.shape_df.set_index('Time', inplace=True)
+        self.shape_df.set_index('Date', inplace=True)
         
-        symmetry_df = pd.DataFrame(columns=['Time', 'Open', 'Close', 'High', 'Low', 'Volume'])
-        symmetry_df = symmetry_df.append({'Time': 1, 'Open': 3, 'Close': 1, 'High': 5, 'Low': 0, 'Volume': 10, 'Classification': 0, 'Percentage Change': 0.2}, ignore_index=True)
-        symmetry_df = symmetry_df.append({'Time': 2, 'Open': 1, 'Close': 8, 'High': 8, 'Low': 1, 'Volume': 10, 'Classification': 1, 'Percentage Change': 0.11}, ignore_index=True)
-        symmetry_df = symmetry_df.append({'Time': 3, 'Open': 8, 'Close': 4, 'High': 8, 'Low': 4, 'Volume': 10, 'Classification': 0, 'Percentage Change': 0.003}, ignore_index=True)
-        symmetry_df = symmetry_df.append({'Time': 4, 'Open': 4, 'Close': 6, 'High': 6, 'Low': 4, 'Volume': 10, 'Classification': 1, 'Percentage Change': 0.003}, ignore_index=True)
-        symmetry_df = symmetry_df.append({'Time': 5, 'Open': 6, 'Close': 10, 'High': 10, 'Low': 6, 'Volume': 10, 'Classification': 0, 'Percentage Change': 0.001}, ignore_index=True)
-        symmetry_df = symmetry_df.append({'Time': 6, 'Open': 10, 'Close': 3, 'High': 10, 'Low': 2, 'Volume': 10, 'Classification': 0, 'Percentage Change': 0.004}, ignore_index=True)
-        symmetry_df = symmetry_df.append({'Time': 7, 'Open': 3, 'Close': 4, 'High': 4, 'Low': 2, 'Volume': 10, 'Classification': 1, 'Percentage Change': 0.09}, ignore_index=True)
-        symmetry_df = symmetry_df.append({'Time': 8, 'Open': 4, 'Close': 8, 'High': 14, 'Low': 3, 'Volume': 10, 'Classification': 0, 'Percentage Change': 0.1}, ignore_index=True)
-        symmetry_df = symmetry_df.append({'Time': 9, 'Open': 8, 'Close': 12, 'High': 12, 'Low': 1, 'Volume': 10, 'Classification': 1, 'Percentage Change': 0.2}, ignore_index=True)
+        symmetry_df = pd.DataFrame(columns=['Date', 'Open', 'Close', 'High', 'Low', 'Volume'])
+        symmetry_df = symmetry_df.append({'Date': 1, 'Open': 3, 'Close': 1, 'High': 5, 'Low': 0, 'Volume': 10, 'Classification': 0, 'Percentage Change': 0.2}, ignore_index=True)
+        symmetry_df = symmetry_df.append({'Date': 2, 'Open': 1, 'Close': 8, 'High': 8, 'Low': 1, 'Volume': 10, 'Classification': 1, 'Percentage Change': 0.11}, ignore_index=True)
+        symmetry_df = symmetry_df.append({'Date': 3, 'Open': 8, 'Close': 4, 'High': 8, 'Low': 4, 'Volume': 10, 'Classification': 0, 'Percentage Change': 0.003}, ignore_index=True)
+        symmetry_df = symmetry_df.append({'Date': 4, 'Open': 4, 'Close': 6, 'High': 6, 'Low': 4, 'Volume': 10, 'Classification': 1, 'Percentage Change': 0.003}, ignore_index=True)
+        symmetry_df = symmetry_df.append({'Date': 5, 'Open': 6, 'Close': 10, 'High': 10, 'Low': 6, 'Volume': 10, 'Classification': 0, 'Percentage Change': 0.001}, ignore_index=True)
+        symmetry_df = symmetry_df.append({'Date': 6, 'Open': 10, 'Close': 3, 'High': 10, 'Low': 2, 'Volume': 10, 'Classification': 0, 'Percentage Change': 0.004}, ignore_index=True)
+        symmetry_df = symmetry_df.append({'Date': 7, 'Open': 3, 'Close': 4, 'High': 4, 'Low': 2, 'Volume': 10, 'Classification': 1, 'Percentage Change': 0.09}, ignore_index=True)
+        symmetry_df = symmetry_df.append({'Date': 8, 'Open': 4, 'Close': 8, 'High': 14, 'Low': 3, 'Volume': 10, 'Classification': 0, 'Percentage Change': 0.1}, ignore_index=True)
+        symmetry_df = symmetry_df.append({'Date': 9, 'Open': 8, 'Close': 12, 'High': 12, 'Low': 1, 'Volume': 10, 'Classification': 1, 'Percentage Change': 0.2}, ignore_index=True)
         
         self.symmetry_df = symmetry_df
     
-    def test_merge_time(self):
-        ta = TechnicalAnalysis(self.shape_df, timeframe=[5, 10])
-        ta.merge_time()
+    def test_merge_Date(self):
+        ta = TechnicalAnalysis(self.shape_df, Dateframe=[5, 10])
+        ta.merge_Date()
         dic = ta.get_dic()
         
         assert(len(dic) == 2)
@@ -48,8 +48,8 @@ class TestTechnicalAnalysis():
         
         #now tests for open, close, high, low, volume
                 
-        ta2 = TechnicalAnalysis(self.symmetry_df, timeframe=[3])
-        ta2.merge_time()
+        ta2 = TechnicalAnalysis(self.symmetry_df, Dateframe=[3])
+        ta2.merge_Date()
         dicc = ta2.get_dic()
         
         assert(dicc['3hour'].iloc[0]['Open'] == 3)
@@ -76,7 +76,7 @@ class TestTechnicalAnalysis():
         dic = {}
         dic['1hour'] = self.symmetry_df
         
-        ta = TechnicalAnalysis(self.symmetry_df, timeframe=[3])
+        ta = TechnicalAnalysis(self.symmetry_df, Dateframe=[3])
         ta.set_dic(dic)
         ta.perform('macd')
         dic = ta.get_dic()
@@ -90,7 +90,7 @@ class TestTechnicalAnalysis():
         dic = {}
         dic['1hour'] = self.symmetry_df
         
-        ta = TechnicalAnalysis(self.symmetry_df, timeframe=[3])
+        ta = TechnicalAnalysis(self.symmetry_df, Dateframe=[3])
         ta.set_dic(dic)
         ta.perform('rsi')
         dic = ta.get_dic()
@@ -103,7 +103,7 @@ class TestTechnicalAnalysis():
         dic = {}
         dic['1hour'] = self.symmetry_df
 
-        ta = TechnicalAnalysis(self.symmetry_df, timeframe=[3])
+        ta = TechnicalAnalysis(self.symmetry_df, Dateframe=[3])
         ta.set_dic(dic)
         ta.perform('bollingerband')
         dic = ta.get_dic()
@@ -116,7 +116,7 @@ class TestTechnicalAnalysis():
         dic = {}
         dic['1hour'] = self.symmetry_df
 
-        ta = TechnicalAnalysis(self.symmetry_df, timeframe=[3])
+        ta = TechnicalAnalysis(self.symmetry_df, Dateframe=[3])
         ta.set_dic(dic)
         ta.perform('obv')
         dic = ta.get_dic()
@@ -130,7 +130,7 @@ class TestTechnicalAnalysis():
         dic = {}
         dic['1hour'] = self.shape_df
 
-        ta = TechnicalAnalysis(self.shape_df, timeframe=[3])
+        ta = TechnicalAnalysis(self.shape_df, Dateframe=[3])
         ta.set_dic(dic)
         ta.perform('volumechange')
         dic = ta.get_dic()
@@ -141,11 +141,11 @@ class TestTechnicalAnalysis():
         '''
         Testing doing multiple strategies and periods
         '''
-        timeframe=[3,4]
+        Dateframe=[3,4]
         period=[3,4,5]
         
-        ta = TechnicalAnalysis(self.shape_df, timeframe=timeframe, period=period)
-        ta.merge_time()
+        ta = TechnicalAnalysis(self.shape_df, Dateframe=Dateframe, period=period)
+        ta.merge_Date()
         
         ta.perform('macd')
         ta.perform('bollingerband')
@@ -153,26 +153,26 @@ class TestTechnicalAnalysis():
         ta.perform('rsi')
         ta.perform('obv')
         
-        df = ta.get_dataframe() #the different timeframes should be merged into single dataframe
-        cols = pd.Series(df.columns) #simple multiply won't work in assert as obv is not divided into different timeframe
+        df = ta.get_dataframe() #the different Dateframes should be merged into single dataframe
+        cols = pd.Series(df.columns) #simple multiply won't work in assert as obv is not divided into different Dateframe
         
-        assert(len(cols[cols.str.contains('macd')]) == len(timeframe) * len(period))
+        assert(len(cols[cols.str.contains('macd')]) == len(Dateframe) * len(period))
         assert(len(cols[cols.str.contains('macd') & cols.str.contains('3hour')]) == 3)
         assert(len(cols[cols.str.contains('macd') & cols.str.contains('4hour')]) == 3)
         
-        assert(len(cols[cols.str.contains('bollingerband')]) == len(timeframe) * len(period))
+        assert(len(cols[cols.str.contains('bollingerband')]) == len(Dateframe) * len(period))
         assert(len(cols[cols.str.contains('bollingerband') & cols.str.contains('3hour')]) == 3)
         assert(len(cols[cols.str.contains('bollingerband') & cols.str.contains('4hour')]) == 3)
         
-        assert(len(cols[cols.str.contains('volumechange')]) == len(timeframe) * len(period))
+        assert(len(cols[cols.str.contains('volumechange')]) == len(Dateframe) * len(period))
         assert(len(cols[cols.str.contains('volumechange') & cols.str.contains('3hour')]) == 3)
         assert(len(cols[cols.str.contains('volumechange') & cols.str.contains('4hour')]) == 3)
         
-        assert(len(cols[cols.str.contains('rsi')]) == len(timeframe) * len(period))
+        assert(len(cols[cols.str.contains('rsi')]) == len(Dateframe) * len(period))
         assert(len(cols[cols.str.contains('rsi') & cols.str.contains('3hour')]) == 3)
         assert(len(cols[cols.str.contains('rsi') & cols.str.contains('4hour')]) == 3)
         
-        assert(len(cols[cols.str.contains('obv')]) == len(timeframe))
+        assert(len(cols[cols.str.contains('obv')]) == len(Dateframe))
         
     #run after test
     def teardown_method(self, test_method):

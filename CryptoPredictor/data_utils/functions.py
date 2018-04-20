@@ -101,7 +101,7 @@ class PriceFunctions():
         
         return mean, std, Xtrain, ytrain, Xtest, ytest
     
-    def get_pandas(self, targetdays=24, absolute=True, coin='BTC', data='cached'):
+    def get_pandas(self, coin='BTC', targetdays=24, absolute=True, data='cached'):
         '''
         Parameters:
         data: (int) (optional)
@@ -128,8 +128,14 @@ class PriceFunctions():
                 finex.loadData()
 
             df = finex.getCleanData()
-            df.set_index('Time', inplace=True)
+            df['Date'] = df['Time']
+            df.drop('Time', axis=1, inplace=True)
+            
+        elif (coin == 'ETH' or coin == 'DASH' or coin == 'DOGE' or coin == 'LTC' or coin == 'STR' or coin == 'XMR' or coin == 'XRP'):
+            df = pd.read_csv('CryptoScraper/cache/{}.csv'.format(coin))
         
+        df.set_index('Date', inplace=True)
+
         df['Percentage Change'] = (1 - df['Close']/df.shift(targetdays)['Close'])
         df['Classification'] = df['Percentage Change'].apply(PriceFunctions().percentage_to_classification)
         
