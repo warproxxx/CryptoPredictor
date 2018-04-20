@@ -28,9 +28,9 @@ class TestTechnicalAnalysis():
         
         self.symmetry_df = symmetry_df
     
-    def test_merge_Date(self):
-        ta = TechnicalAnalysis(self.shape_df, Dateframe=[5, 10])
-        ta.merge_Date()
+    def test_merge_time(self):
+        ta = TechnicalAnalysis(self.shape_df, Timeframe=[5, 10])
+        ta.merge_time()
         dic = ta.get_dic()
         
         assert(len(dic) == 2)
@@ -48,8 +48,8 @@ class TestTechnicalAnalysis():
         
         #now tests for open, close, high, low, volume
                 
-        ta2 = TechnicalAnalysis(self.symmetry_df, Dateframe=[3])
-        ta2.merge_Date()
+        ta2 = TechnicalAnalysis(self.symmetry_df, Timeframe=[3])
+        ta2.merge_time()
         dicc = ta2.get_dic()
         
         assert(dicc['3hour'].iloc[0]['Open'] == 3)
@@ -76,7 +76,7 @@ class TestTechnicalAnalysis():
         dic = {}
         dic['1hour'] = self.symmetry_df
         
-        ta = TechnicalAnalysis(self.symmetry_df, Dateframe=[3])
+        ta = TechnicalAnalysis(self.symmetry_df, Timeframe=[3])
         ta.set_dic(dic)
         ta.perform('macd')
         dic = ta.get_dic()
@@ -90,7 +90,7 @@ class TestTechnicalAnalysis():
         dic = {}
         dic['1hour'] = self.symmetry_df
         
-        ta = TechnicalAnalysis(self.symmetry_df, Dateframe=[3])
+        ta = TechnicalAnalysis(self.symmetry_df, Timeframe=[3])
         ta.set_dic(dic)
         ta.perform('rsi')
         dic = ta.get_dic()
@@ -103,7 +103,7 @@ class TestTechnicalAnalysis():
         dic = {}
         dic['1hour'] = self.symmetry_df
 
-        ta = TechnicalAnalysis(self.symmetry_df, Dateframe=[3])
+        ta = TechnicalAnalysis(self.symmetry_df, Timeframe=[3])
         ta.set_dic(dic)
         ta.perform('bollingerband')
         dic = ta.get_dic()
@@ -116,7 +116,7 @@ class TestTechnicalAnalysis():
         dic = {}
         dic['1hour'] = self.symmetry_df
 
-        ta = TechnicalAnalysis(self.symmetry_df, Dateframe=[3])
+        ta = TechnicalAnalysis(self.symmetry_df, Timeframe=[3])
         ta.set_dic(dic)
         ta.perform('obv')
         dic = ta.get_dic()
@@ -130,7 +130,7 @@ class TestTechnicalAnalysis():
         dic = {}
         dic['1hour'] = self.shape_df
 
-        ta = TechnicalAnalysis(self.shape_df, Dateframe=[3])
+        ta = TechnicalAnalysis(self.shape_df, Timeframe=[3])
         ta.set_dic(dic)
         ta.perform('volumechange')
         dic = ta.get_dic()
@@ -141,11 +141,11 @@ class TestTechnicalAnalysis():
         '''
         Testing doing multiple strategies and periods
         '''
-        Dateframe=[3,4]
+        Timeframe=[3,4]
         period=[3,4,5]
         
-        ta = TechnicalAnalysis(self.shape_df, Dateframe=Dateframe, period=period)
-        ta.merge_Date()
+        ta = TechnicalAnalysis(self.shape_df, Timeframe=Timeframe, period=period)
+        ta.merge_time()
         
         ta.perform('macd')
         ta.perform('bollingerband')
@@ -153,26 +153,26 @@ class TestTechnicalAnalysis():
         ta.perform('rsi')
         ta.perform('obv')
         
-        df = ta.get_dataframe() #the different Dateframes should be merged into single dataframe
-        cols = pd.Series(df.columns) #simple multiply won't work in assert as obv is not divided into different Dateframe
+        df = ta.get_dataframe() #the different Timeframes should be merged into single dataframe
+        cols = pd.Series(df.columns) #simple multiply won't work in assert as obv is not divided into different Timeframe
         
-        assert(len(cols[cols.str.contains('macd')]) == len(Dateframe) * len(period))
+        assert(len(cols[cols.str.contains('macd')]) == len(Timeframe) * len(period))
         assert(len(cols[cols.str.contains('macd') & cols.str.contains('3hour')]) == 3)
         assert(len(cols[cols.str.contains('macd') & cols.str.contains('4hour')]) == 3)
         
-        assert(len(cols[cols.str.contains('bollingerband')]) == len(Dateframe) * len(period))
+        assert(len(cols[cols.str.contains('bollingerband')]) == len(Timeframe) * len(period))
         assert(len(cols[cols.str.contains('bollingerband') & cols.str.contains('3hour')]) == 3)
         assert(len(cols[cols.str.contains('bollingerband') & cols.str.contains('4hour')]) == 3)
         
-        assert(len(cols[cols.str.contains('volumechange')]) == len(Dateframe) * len(period))
+        assert(len(cols[cols.str.contains('volumechange')]) == len(Timeframe) * len(period))
         assert(len(cols[cols.str.contains('volumechange') & cols.str.contains('3hour')]) == 3)
         assert(len(cols[cols.str.contains('volumechange') & cols.str.contains('4hour')]) == 3)
         
-        assert(len(cols[cols.str.contains('rsi')]) == len(Dateframe) * len(period))
+        assert(len(cols[cols.str.contains('rsi')]) == len(Timeframe) * len(period))
         assert(len(cols[cols.str.contains('rsi') & cols.str.contains('3hour')]) == 3)
         assert(len(cols[cols.str.contains('rsi') & cols.str.contains('4hour')]) == 3)
         
-        assert(len(cols[cols.str.contains('obv')]) == len(Dateframe))
+        assert(len(cols[cols.str.contains('obv')]) == len(Timeframe))
         
     #run after test
     def teardown_method(self, test_method):

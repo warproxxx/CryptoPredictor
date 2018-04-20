@@ -1,9 +1,10 @@
 import pandas as pd
 import numpy as np
+import os.path
 
 class TechnicalAnalysis:
     
-    def merge_Date(self):
+    def merge_time(self, cache=False):
         '''
         Merges the pandas dataframes by given Date. 
         
@@ -14,25 +15,39 @@ class TechnicalAnalysis:
         fromval = 0
         toval = 0
         
-        for i in self.Dateframe:
+        for i in self.Timeframe:
             dic[str(i) + "hour"] = pd.DataFrame(self.df.iloc[0:0])
         
-        for i in self.Dateframe:
+        for i in self.Timeframe:
+
             currname = str(i) + "hour"
+
+            fname = 'cache-{}-{}.csv'.format(self.coinname, str(i) + "merged")
+            fullname = 'TechnicalAnalysis\cache\{}'.format(fname)
+
+            if (cache == True and os.path.isfile(fullname)):
+                print('Read from cache')
+                dic[currname] = pd.read_csv(fullname,index_col='Date')        
+            else:
+                for j in range(0, self.df.shape[0], i):
+                    tempdf = self.df.iloc[j:j+i]
+                    dic[currname] = dic[currname].append({'Date': tempdf.index[0], 'Open': tempdf.iloc[0]['Open'], 'Close': tempdf.iloc[-1]['Close'], 'High': max(tempdf['High']), 'Low': min(tempdf['Low']), 'Volume': sum(tempdf['Volume']), 'Classification': tempdf.iloc[-1]['Classification'], 'Percentage Change': tempdf.iloc[-1]['Percentage Change']}, ignore_index=True) #append returns a new dataframe
             
-            for j in range(0, self.df.shape[0], i):
-                tempdf = self.df.iloc[j:j+i]
-                dic[currname] = dic[currname].append({'Date': tempdf.index[0], 'Open': tempdf.iloc[0]['Open'], 'Close': tempdf.iloc[-1]['Close'], 'High': max(tempdf['High']), 'Low': min(tempdf['Low']), 'Volume': sum(tempdf['Volume']), 'Classification': tempdf.iloc[-1]['Classification'], 'Percentage Change': tempdf.iloc[-1]['Percentage Change']}, ignore_index=True) #append returns a new dataframe
-        
-            dic[currname].set_index('Date', inplace=True)  
-            dic[currname].index = dic[currname].index.map(int) #convert to int because getting floats in scientific notation
-            dic[currname]['Classification'] = dic[currname]['Classification'].astype(int)
+                dic[currname].set_index('Date', inplace=True)  
+                dic[currname].index = dic[currname].index.map(int) #convert to int because getting floats in scientific notation
+                dic[currname]['Classification'] = dic[currname]['Classification'].astype(int)
+
+                if (cache == True):
+                    dic[currname].to_csv(fullname)
+                    print('Wrote {} to cache'.format(fname))
+            
+            
             
         self.dic = dic
         
     def set_dic(self, dic):
         '''
-        Dictionary stores dataframes at different Dateframe and periods with specified Technical Indicators
+        Dictionary stores dataframes at different Timeframe and periods with specified Technical Indicators
         
         This function updates that dictionary
         
@@ -46,12 +61,12 @@ class TechnicalAnalysis:
         
     def get_dic(self):
         '''
-        Returns the current dictionary which stores dataframes at different Dateframe and periods with specified Technical Indicators 
+        Returns the current dictionary which stores dataframes at different Timeframe and periods with specified Technical Indicators 
         
         Returns:
         ________
         dic: (dict)
-        Dictionary which stores dataframes at different Dateframe and periods with specified Technical Indicators 
+        Dictionary which stores dataframes at different Timeframe and periods with specified Technical Indicators 
         
         '''
         return self.dic
@@ -105,7 +120,7 @@ class TechnicalAnalysis:
         '''
         Calculates Moving Average Convergance Divergence (MACD) and adds it in the dictionary
         
-        It is the difference of moving average between 2 different Dateframes
+        It is the difference of moving average between 2 different Timeframes
         
         Eg:
         MACD14 means EWMA12 - EWMA26 and so on
@@ -193,17 +208,19 @@ class TechnicalAnalysis:
         roc = roc.replace(np.inf, 0)
         return roc
             
-    def __init__(self, df, Dateframe = [3, 6, 24], period=[14]):
+    def __init__(self, df, Timeframe = [3, 6, 24], period=[14], coin='DEF'):
         '''
         Parameters:
         ___________
         
         df: Pandas dataframe containing Open, Close, High, Low and Volume
-        Dateframe (optional): list containing Dateframes (hours for hourly data) to merge and calculate in
-        period: (optional): list containing periods to calculate in for a given Dateframe
+        Timeframe (optional): list containing Timeframes (hours for hourly data) to merge and calculate in
+        period: (optional): list containing periods to calculate in for a given Timeframe
+        coinname (optional): to manage caching
         '''
         self.df = df
-        self.Dateframe = Dateframe
+        self.Timeframe = Timeframe
         self.period = period
         self.method_list = {'macd': self.macd, 'bollingerband': self.bollingerband, 'obv': self.obv, 'volumechange': self.volumechange, 'rsi': self.rsi}
         self.initial_cols = df.columns
+        self.coinname = coin

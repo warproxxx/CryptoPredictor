@@ -101,6 +101,44 @@ class PriceFunctions():
         
         return mean, std, Xtrain, ytrain, Xtest, ytest
     
+    def to_same_starting(self, dfs):
+        '''
+        dfs: (dict)
+        Dictionary containing 
+
+        Converts dataframes to same starting and ending date
+        '''
+        biggest = 1
+        smallestFinal = 99999999999
+        for coin in dfs:
+            if dfs[coin].index[0] > biggest:
+                biggest = dfs[coin].index[0]
+
+            if dfs[coin].index[-1] < smallestFinal:
+                smallestFinal = dfs[coin].index[-1]
+
+        
+        for coin in dfs:        
+            dfs[coin] = dfs[coin][dfs[coin].index >= biggest]
+            dfs[coin] = dfs[coin][dfs[coin].index <= smallestFinal] 
+
+        return dfs
+
+    def to_usd(self, dfs):
+        '''
+        Uses the bitcoin column to convert other to USD. BTC should be first column
+        '''
+        cols = list(dfs.keys())
+        cols.remove('BTC')
+
+        for coin in cols:
+            dfs[coin]['Open'] = dfs[coin]['Open'] * dfs['BTC']['Open'] 
+            dfs[coin]['Close'] = dfs[coin]['Close'] * dfs['BTC']['Close']
+            dfs[coin]['High'] = dfs[coin]['High'] * dfs['BTC']['Close']  #some issue in logic
+            dfs[coin]['Low'] = dfs[coin]['Low'] * dfs['BTC']['Close'] #some issue in logic
+
+        return dfs
+
     def get_pandas(self, coin='BTC', targetdays=24, absolute=True, data='cached'):
         '''
         Parameters:
