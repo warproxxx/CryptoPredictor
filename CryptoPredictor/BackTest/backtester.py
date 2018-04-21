@@ -75,11 +75,13 @@ class Backtester:
         
         for i, key in enumerate(keyList):
             if i > 0:
+                #self.bars[keyList[i]]['Date'] = pd.to_datetime(self.bars[keyList[i]]['Date']) #converting to pandas date if they are not like that
+                
                 try:
                     assert(self.bars[keyList[i]]['Date'].equals(self.bars[keyList[i-1]]['Date']))
-                    self.bars[keyList[i]]['Date'] = pd.to_datetime(self.bars[keyList[i]]['Date']) #converting to pandas date if they are not like that
+                    
                 except AssertionError:
-                    print("The dates in your dataframe do not match. The dates of {} and {} are different at".format(keyList[i], keyList[i-1]))
+                    print("The dates in your dataframe do not match. The dates of {} and {} are different at {}".format(keyList[i], keyList[i-1], AssertionError))
                 
                 try:
                     assert(self.signals[keyList[i]].shape == self.signals[keyList[i-1]].shape)
